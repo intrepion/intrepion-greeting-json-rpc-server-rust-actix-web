@@ -1,9 +1,42 @@
 use actix_cors::Cors;
-use actix_web::{http::header, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{http::header, web, App, HttpServer, Responder, Result};
+use serde::{Deserialize, Serialize};
 use std::env;
 
-async fn index() -> impl Responder {
-    HttpResponse::Ok().content_type("application/json").body("{\"id\":\"00000000-0000-0000-0000-000000000000\",\"jsonrpc\":\"2.0\",\"result\":{\"greeting\":\"Hello, Alice!\"}}")
+#[derive(Deserialize)]
+struct GreetingJsonRpcParams {
+    name: String,
+}
+
+#[derive(Deserialize)]
+struct GreetingJsonRpcRequest {
+    id: String,
+    jsonrpc: String,
+    method: String,
+    params: GreetingJsonRpcParams,
+}
+
+#[derive(Serialize)]
+struct GreetingJsonRpcResponse {
+    id: String,
+    jsonrpc: String,
+    result: GreetingJsonRpcResult,
+}
+
+#[derive(Serialize)]
+struct GreetingJsonRpcResult {
+    greeting: String,
+}
+
+async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Responder> {
+    let greeting = GreetingJsonRpcResponse {
+        id: request.id.clone(),
+        jsonrpc: request.jsonrpc.clone(),
+        result: GreetingJsonRpcResult {
+            greeting: format!("Hello, {}!", request.params.name),
+        },
+    };
+    Ok(web::Json(greeting))
 }
 
 #[actix_web::main]
