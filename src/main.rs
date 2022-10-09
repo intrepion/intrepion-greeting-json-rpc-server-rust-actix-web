@@ -56,11 +56,21 @@ async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Respon
                 data: MethodNotFoundData {
                     method: request.method.clone(),
                 },
-                message: "Method not found".to_string(),
+                message: "Method not found".to_owned(),
             },
             id: request.id.clone(),
             jsonrpc: request.jsonrpc.clone(),
-        }))
+        }));
+    }
+
+    if request.params.name.is_empty() {
+        return Ok(web::Json(GreetingJsonRpcResponse::GreetingResult {
+            id: request.id.clone(),
+            jsonrpc: request.jsonrpc.clone(),
+            result: GreetingResult {
+                greeting: "Hello, World!".to_owned(),
+            },
+        }));
     }
 
     Ok(web::Json(GreetingJsonRpcResponse::GreetingResult {
