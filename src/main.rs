@@ -17,26 +17,59 @@ struct GreetingJsonRpcRequest {
 }
 
 #[derive(Serialize)]
-struct GreetingJsonRpcResponse {
-    id: String,
-    jsonrpc: String,
-    result: GreetingJsonRpcResult,
+#[serde(untagged)]
+pub enum GreetingJsonRpcResponse {
+    MethodNotFoundError {
+        error: MethodNotFoundError,
+        id: String,
+        jsonrpc: String,
+    },
+    GreetingResult {
+        id: String,
+        jsonrpc: String,
+        result: GreetingResult,
+    },
 }
 
 #[derive(Serialize)]
-struct GreetingJsonRpcResult {
+pub struct GreetingResult {
     greeting: String,
 }
 
+#[derive(Serialize)]
+pub struct MethodNotFoundData {
+    method: String,
+}
+
+#[derive(Serialize)]
+pub struct MethodNotFoundError {
+    code: i32,
+    data: MethodNotFoundData,
+    message: String,
+}
+
 async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Responder> {
-    let greeting = GreetingJsonRpcResponse {
+    if request.method != "greeting" {
+        return Ok(web::Json(GreetingJsonRpcResponse::MethodNotFoundError {
+            error: MethodNotFoundError {
+                code: -32601,
+                data: MethodNotFoundData {
+                    method: request.method.clone(),
+                },
+                message: "Method not found".to_string(),
+            },
+            id: request.id.clone(),
+            jsonrpc: request.jsonrpc.clone(),
+        }))
+    }
+
+    Ok(web::Json(GreetingJsonRpcResponse::GreetingResult {
         id: request.id.clone(),
         jsonrpc: request.jsonrpc.clone(),
-        result: GreetingJsonRpcResult {
+        result: GreetingResult {
             greeting: format!("Hello, {}!", request.params.name),
         },
-    };
-    Ok(web::Json(greeting))
+    }))
 }
 
 #[actix_web::main]
