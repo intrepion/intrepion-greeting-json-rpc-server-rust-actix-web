@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{http::header, web, App, HttpServer, Responder, Result};
+use actix_web::{http::header, web, App, HttpResponse, HttpServer, Responder, Result};
 use serde::{Deserialize, Serialize};
 use std::env;
 
@@ -46,6 +46,10 @@ pub struct MethodNotFoundError {
     code: i32,
     data: MethodNotFoundData,
     message: String,
+}
+
+pub async fn health_check() -> HttpResponse {
+    HttpResponse::Ok().finish()
 }
 
 async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Responder> {
@@ -99,6 +103,7 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .route("/api", web::post().to(index))
+            .route("/health_check", web::get().to(health_check))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
