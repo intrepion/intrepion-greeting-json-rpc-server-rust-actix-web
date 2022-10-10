@@ -63,7 +63,9 @@ async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Respon
         }));
     }
 
-    if request.params.name.is_empty() {
+    let name = request.params.name.trim();
+
+    if name.is_empty() {
         return Ok(web::Json(GreetingJsonRpcResponse::GreetingResult {
             id: request.id.clone(),
             jsonrpc: request.jsonrpc.clone(),
@@ -77,7 +79,7 @@ async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Respon
         id: request.id.clone(),
         jsonrpc: request.jsonrpc.clone(),
         result: GreetingResult {
-            greeting: format!("Hello, {}!", request.params.name),
+            greeting: format!("Hello, {}!", name),
         },
     }))
 }
