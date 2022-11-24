@@ -7,6 +7,9 @@ spec:
     - key: APP_APPLICATION__BASE_URL
       scope: RUN_TIME
       value: ${APP_URL}
+    - key: CLIENT_URL
+      scope: BUILD_TIME
+      value: ${CLIENT_URL}
     github:
       branch: main
       deploy_on_push: true
