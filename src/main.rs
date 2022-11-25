@@ -91,6 +91,7 @@ async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Respon
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let client_url = env::var("CLIENT_URL").expect("You must set CLIENT_URL");
+    println!("Client URL: {client_url}");
     HttpServer::new(move || {
         App::new()
             .wrap(
