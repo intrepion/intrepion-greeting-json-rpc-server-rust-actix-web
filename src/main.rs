@@ -1,5 +1,11 @@
 use actix_cors::Cors;
-use actix_web::{http::header, web, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{
+    http::{
+        header::{self, ContentType},
+        StatusCode,
+    },
+    web, App, HttpResponse, HttpServer, Responder, Result,
+};
 use serde::{Deserialize, Serialize};
 use std::env;
 
@@ -46,6 +52,24 @@ pub struct MethodNotFoundError {
     code: i32,
     data: MethodNotFoundData,
     message: String,
+}
+
+pub async fn env_vars() -> HttpResponse {
+    let client_url = env::var("CLIENT_URL").expect("You must set CLIENT_URL");
+    HttpResponse::build(StatusCode::OK)
+        .content_type(ContentType::html())
+        .body(format!(
+            r#"<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        <title>Env Vars</title>
+    </head>
+    <body>
+        <p>Client URL: <a href="{client_url}">{client_url}</a></p>
+    </body>
+</html>"#
+        ))
 }
 
 pub async fn health_check() -> HttpResponse {
@@ -103,7 +127,8 @@ async fn main() -> std::io::Result<()> {
                     .supports_credentials()
                     .max_age(3600),
             )
-            .route("/api", web::post().to(index))
+            .route("/", web::get().to(env_vars))
+            .route("/", web::post().to(index))
             .route("/health_check", web::get().to(health_check))
     })
     .bind(("127.0.0.1", 8080))?
