@@ -114,7 +114,9 @@ async fn index(request: web::Json<GreetingJsonRpcRequest>) -> Result<impl Respon
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    let base_url = env::var("BASE_URL").unwrap_or_else(|_| "0.0.0.0".to_owned());
     let client_url = env::var("CLIENT_URL").unwrap_or_else(|_| "http://localhost:8080".to_owned());
+    println!("Base URL: {base_url}");
     println!("Client URL: {client_url}");
     HttpServer::new(move || {
         App::new()
@@ -131,7 +133,7 @@ async fn main() -> std::io::Result<()> {
             .route("/", web::post().to(index))
             .route("/health_check", web::get().to(health_check))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((base_url, 8080))?
     .run()
     .await
 }
